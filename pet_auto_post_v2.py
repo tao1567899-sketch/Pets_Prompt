@@ -187,164 +187,100 @@ class PetContentManager:
         print(f"💾 已保存 {pet_name} 的生成记录")
 
 
-# ===================== Minimax 2.7 生成超高质量Prompt =====================
+def extract_generated_text(data: Dict) -> str:
+    """兼容不同返回结构，提取模型文本"""
+    generated_text = ""
+    if isinstance(data, dict):
+        generated_text = (data.get("reply") or "").strip()
+        if not generated_text:
+            choices = data.get("choices") or []
+            if choices and isinstance(choices, list):
+                first = choices[0] if isinstance(choices[0], dict) else {}
+                message = first.get("message") if isinstance(first, dict) else {}
+                if isinstance(message, dict):
+                    generated_text = (message.get("content") or "").strip()
+                if not generated_text:
+                    generated_text = (first.get("text") or "").strip() if isinstance(first, dict) else ""
+        if not generated_text:
+            generated_text = (data.get("output_text") or "").strip()
+    return generated_text
+
+
+def build_image_generation_prompt(pet_name: str) -> str:
+    """固定生成独立图片Prompt，避免模型漏掉图片部分"""
+    return f"""【图片生成Prompt】
+
+请为【{pet_name}】输出 3 组可直接用于图片模型的写实风格图片生成 Prompt。
+
+通用要求：
+- 所有图片都必须是写实摄影风格
+- 所有画面中禁止出现任何文字、字母、logo、水印、贴纸、海报字
+- 画面干净、自然、温暖、真实，有宠物摄影质感
+- 每组都必须包含：图X用途、中文提示词、English prompt、Negative prompt
+
+图1用途：封面图
+中文提示词：超高清写实照片，可爱的{pet_name}幼宠特写，毛发纤毫毕现，温柔眼神看向镜头，柔和自然光，浅景深背景虚化，专业摄影质感，暖色调，治愈氛围，16:9横版构图，画面干净，无任何文字、字母、logo、水印、贴纸
+English prompt: ultra realistic pet photography, cute young {pet_name}, close-up portrait, detailed fur, gentle eye contact, soft natural light, shallow depth of field, warm tone, healing atmosphere, clean background, 16:9 composition, no text, no letters, no logo, no watermark, no sticker
+Negative prompt: text, letters, logo, watermark, sticker, blurry, low resolution, distorted anatomy, duplicate limbs, messy background, oversaturated
+
+图2用途：正文配图-日常互动
+中文提示词：{pet_name}幼宠和主人在客厅玩耍，温馨家庭氛围，抓拍感，写实摄影风格，自然光线，构图干净，生活化场景，画面中无任何文字元素
+English prompt: realistic lifestyle pet photography, young {pet_name} playing with owner in living room, warm family atmosphere, candid shot, natural lighting, clean composition, cozy home scene, no text, no letters, no logo, no watermark
+Negative prompt: text, letters, logo, watermark, poster text, blurry, low resolution, distorted hands, distorted paws, duplicate limbs, cluttered scene
+
+图3用途：正文配图-护理训练
+中文提示词：{pet_name}幼宠在接受喂食、基础训练或健康检查，生活化真实场景，写实摄影风格，光线柔和，主体清晰，画面干净，无任何文字、字母、logo、水印
+English prompt: realistic pet care photography, young {pet_name} during feeding or basic training or health check, natural lifestyle scene, soft lighting, sharp subject, clean frame, no text, no letters, no logo, no watermark
+Negative prompt: text, letters, logo, watermark, sticker, blurry, low resolution, distorted anatomy, duplicate limbs, messy background, artificial props overload
+"""
+
+
+# ===================== Minimax 生成超高质量Prompt =====================
 def generate_ultra_high_quality_prompt(pet_name: str) -> str:
-    """生成极致优化的创作Prompt"""
+    """生成文案Prompt，并拼接固定图片Prompt"""
     
     system_prompt = """
 你是顶级宠物自媒体AI策划总监，拥有10年+小红书、知乎、公众号三平台运营经验。
-你的Prompt必须达到：
-- 小红书笔记自然流量突破10万+
-- 知乎回答获赞1000+
-- 公众号阅读完成率85%+
-- 互动率（评论+点赞+收藏）15%+
-
-你现在要输出一段**可直接复制粘贴给Codex使用的终极创作指令**，
-不要有任何开场白、不要解释、不要备注，直接输出Prompt本体。
+你的任务不是直接写内容，而是输出一段可直接复制给 Codex 使用的【文案Prompt】。
+不要输出任何解释、备注、前言，只输出文案Prompt本体。
 """
 
     user_prompt = f"""
-为宠物品种【{pet_name}】创作一段**终极创作指令Prompt**，让Codex输出两部分内容：`文案Prompt` + `图片生成Prompt`。
+请只生成【文案Prompt】部分，不要生成图片Prompt，不要输出别的章节。
 
-在这段 Prompt 里必须明确要求：
-- 第一部分是三平台文案创作 Prompt，内容目标保持不变
-- 第二部分是图片生成 Prompt
-- 图片只需要 3 张
-- 所有图片必须是写实风格
-- 所有图片画面中不得出现任何文字、字母、logo、水印、贴纸
-
-必须包含以下所有模块（用清晰分隔线区分）：
-
-━━━━━━━━━━━━━━━━━━━━
-## 📍 创作背景
-- 目标品种：{pet_name}
+文案目标：
+- 宠物品种：{pet_name}
 - 平台：小红书、知乎、公众号
 - 目标人群：准备养宠、新手铲屎官、宠物爱好者
 - 核心目标：高互动、高转化、强种草
 
-━━━━━━━━━━━━━━━━━━━━
-## 🎯 小红书爆款标题（5选1）
-要求：
-- 每个标题20-25字，带emoji
-- 融入痛点/好奇/反差/悬念
-- 必含【{pet_name}】关键词
-- 至少3个标题用疑问/惊叹句式
-- 示例风格："养{pet_name}第3年才发现的秘密😱新手必看！"
+文案Prompt必须要求 Codex 输出以下模块：
+- 创作背景
+- 小红书爆款标题（5选1）
+- 开头钩子（3选1）
+- 正文核心内容（1500-2000字，分5大模块）
+- 互动引导话术
+- 小红书标签（15个）
+- 知乎专属优化
+- 公众号排版建议
 
-━━━━━━━━━━━━━━━━━━━━
-## 🔥 开头钩子（3选1，前50字决定完读率）
-要求：
-- 制造悬念或强烈情绪共鸣
-- 直击用户痛点（被坑/选错/后悔）
-- 案例式开头更佳
-- 示例："花了3万买{pet_name}，第2个月就后悔了...不是因为它不好，而是..."
+正文核心内容必须覆盖：
+1. 品种真相与避坑指南
+2. 性格特点与真实体验
+3. 科学饲养攻略
+4. 养宠成本大公开
+5. 高频问答环节（10个）
 
-━━━━━━━━━━━━━━━━━━━━
-## 📝 正文核心内容（1500-2000字，分5大模块）
+风格要求：
+- 语言生活化、有网感，像朋友聊天一样真诚
+- 避免广告腔、避免假大空
+- 用真实案例和数据说话
+- 必须包含具体场景、具体问题、具体建议
 
-### 1️⃣ 品种真相与避坑指南
-- 市面上的常见骗局（串串冒充纯种、病犬美颜等）
-- 如何辨别纯种{pet_name}（3-5个核心特征）
-- 价格区间真相（宠物店vs犬舍vs家养，价格差异原因）
-- 新手最容易踩的3个坑
-
-### 2️⃣ 性格特点与真实体验
-- {pet_name}的真实性格（不要写广告式的完美描述）
-- 优点（3个，要具体场景化）
-- 缺点/挑战（2-3个，必须真实，比如掉毛/叫声/破坏力）
-- 适合人群/不适合人群（要具体到生活场景）
-
-### 3️⃣ 科学饲养攻略
-- 饮食方案（幼犬/成犬，推荐品牌，喂养频率）
-- 日常护理（洗澡频率、美容费用、驱虫疫苗时间表）
-- 训练要点（定点大小便、基础指令、社会化训练）
-- 常见疾病预防（{pet_name}易患病症，预防方法）
-
-### 4️⃣ 养宠成本大公开
-- 一次性投入（购买+用品，列明细）
-- 月度开销（狗粮/猫粮、零食、护理、医疗预算）
-- 年度总成本（给出区间范围）
-- 隐性成本提醒（时间成本、精力成本）
-
-### 5️⃣ 高频问答环节（10个必答问题）
-用问答形式解决用户真实疑问，比如：
-- {pet_name}掉毛严重吗？
-- 能单独在家几小时？
-- 和小孩/老人相处如何？
-- 公寓适合养吗？
-- 体味大吗？
-...等等
-
-━━━━━━━━━━━━━━━━━━━━
-## 💬 互动引导话术（嵌入正文3处+结尾）
-要求：
-- 正文中间穿插2-3次引导评论（"你家{pet_name}有这个习惯吗？评论区见🤔"）
-- 结尾设计高回复率问题（"你最担心养{pet_name}的哪一点？"）
-- 引导收藏："建议收藏这份{pet_name}养护手册，别等买了再来找！"
-- 引导关注："持续分享各品种避坑指南，关注不迷路🐾"
-
-━━━━━━━━━━━━━━━━━━━━
-## 🏷️ 小红书标签（15个，含热门+长尾）
-格式：#主标签 #长尾标签 #地域标签
-示例：
-#养狗攻略 #{pet_name} #{pet_name}避坑 #新手养狗 #宠物测评
-#铲屎官日常 #宠物选购 #纯种{pet_name} #{pet_name}价格
-#城市养宠 #宠物医疗 #宠物用品推荐 #家养宠物 #治愈系宠物
-
-━━━━━━━━━━━━━━━━━━━━
-## 🎨 图片生成Prompt（3组）
-
-### 封面主图提示词：
-超高清写实照片，可爱的{pet_name}幼宠特写，毛发纤毫毕现，温柔眼神看向镜头，
-柔和自然光，浅景深背景虚化，专业摄影质感，暖色调，治愈氛围，16:9横版构图，8K分辨率，
-画面干净，无任何文字、字母、logo、水印、贴纸
-
-### 配图提示词（2张）：
-1. 日常互动场景："{pet_name}幼宠和主人在客厅玩耍，温馨家庭氛围，写实摄影风格，画面干净，无任何文字元素"
-2. 护理训练场景："{pet_name}幼宠在接受喂食/基础训练/健康检查，生活化场景，写实摄影风格，画面干净，无任何文字元素"
-
-要求：
-- 一共只输出 3 组图片生成 Prompt
-- 每组都要可直接用于图片模型
-- 每组都包含：主体、场景、动作、镜头、光线、风格、比例
-- 所有图片统一为写实风格
-- 明确增加限制：画面中禁止出现任何文字、字母、logo、水印、海报字、贴纸
-- 每组都补充一行 negative prompt（如：文字、水印、低清晰度、畸形、模糊、脏乱背景、重复肢体）
-
-━━━━━━━━━━━━━━━━━━━━
-## 🖼️ 图片Prompt输出格式要求
-- 必须单独输出一个【图片生成Prompt】章节，不得省略
-- 一共输出 3 组：封面图 1 张 + 配图 2 张
-- 每组都按以下格式输出：
-  图X用途：
-  中文提示词：
-  English prompt:
-  Negative prompt:
-- 图片Prompt是独立可执行的，不要和文案混写
-
-━━━━━━━━━━━━━━━━━━━━
-## 📊 知乎专属优化（回答语气更理性）
-- 开头增加数据支撑（"根据2024年宠物白皮书，{pet_name}..."）
-- 加入对比表格（{pet_name} vs 其他同类品种）
-- 引用权威来源（兽医建议、宠物协会标准）
-- 结尾增加理性劝告（"养宠是长期承诺，请谨慎决定"）
-
-━━━━━━━━━━━━━━━━━━━━
-## 📱 公众号排版建议
-- 小标题用emoji+短句
-- 每200字插入一张配图
-- 重点内容用【】或粗体
-- 结尾加引导关注卡片
-
-━━━━━━━━━━━━━━━━━━━━
-
-请以上述框架，创作一篇关于【{pet_name}】的完整内容，
-语言要生活化、有网感，像朋友聊天一样真诚，
-避免广告腔、避免假大空，用真实案例和数据说话。
-最终输出必须严格分为两部分：
-第一部分：【文案Prompt】
-第二部分：【图片生成Prompt】
-其中图片生成 Prompt 只需要 3 组，并且所有图片必须是无文字的写实风格。
+输出格式要求：
+- 第一行必须是【文案Prompt】
+- 后面直接输出可给 Codex 使用的文案指令
+- 不要输出【图片生成Prompt】
 """
 
     headers = {
@@ -385,28 +321,23 @@ def generate_ultra_high_quality_prompt(pet_name: str) -> str:
                     f"status_msg={base_resp.get('status_msg', '')}"
                 )
 
-            # 兼容不同返回格式，优先提取非空文本
-            generated_prompt = ""
-            if isinstance(data, dict):
-                generated_prompt = (data.get("reply") or "").strip()
-                if not generated_prompt:
-                    choices = data.get("choices") or []
-                    if choices and isinstance(choices, list):
-                        first = choices[0] if isinstance(choices[0], dict) else {}
-                        message = first.get("message") if isinstance(first, dict) else {}
-                        if isinstance(message, dict):
-                            generated_prompt = (message.get("content") or "").strip()
-                        if not generated_prompt:
-                            generated_prompt = (first.get("text") or "").strip() if isinstance(first, dict) else ""
-                if not generated_prompt:
-                    generated_prompt = (data.get("output_text") or "").strip()
+            copy_prompt = extract_generated_text(data)
 
-            if not generated_prompt:
+            if not copy_prompt:
                 preview = str(data)[:500]
                 raise ValueError(f"模型返回为空，响应预览：{preview}")
 
-            print(f"✅ Prompt生成成功，模型：{model_name}，长度：{len(generated_prompt)} 字符")
-            return generated_prompt
+            if not copy_prompt.startswith("【文案Prompt】"):
+                copy_prompt = f"【文案Prompt】\n\n{copy_prompt}"
+
+            image_prompt = build_image_generation_prompt(pet_name)
+            final_prompt = f"{copy_prompt}\n\n{image_prompt}"
+
+            if "【文案Prompt】" not in final_prompt or "【图片生成Prompt】" not in final_prompt:
+                raise ValueError("最终Prompt缺少必要章节")
+
+            print(f"✅ Prompt生成成功，模型：{model_name}，长度：{len(final_prompt)} 字符")
+            return final_prompt
         except requests.exceptions.ReadTimeout as e:
             last_error = f"模型 {model_name} 响应超时：{e}"
             print(f"⚠️ {last_error}")
