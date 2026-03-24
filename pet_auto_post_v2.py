@@ -341,7 +341,27 @@ def generate_ultra_high_quality_prompt(pet_name: str) -> str:
         )
         response.raise_for_status()
         data = response.json()
-        generated_prompt = data["reply"].strip()
+
+        # 兼容不同返回格式，优先提取非空文本
+        generated_prompt = ""
+        if isinstance(data, dict):
+            generated_prompt = (data.get("reply") or "").strip()
+            if not generated_prompt:
+                choices = data.get("choices") or []
+                if choices and isinstance(choices, list):
+                    first = choices[0] if isinstance(choices[0], dict) else {}
+                    message = first.get("message") if isinstance(first, dict) else {}
+                    if isinstance(message, dict):
+                        generated_prompt = (message.get("content") or "").strip()
+                    if not generated_prompt:
+                        generated_prompt = (first.get("text") or "").strip() if isinstance(first, dict) else ""
+            if not generated_prompt:
+                generated_prompt = (data.get("output_text") or "").strip()
+
+        if not generated_prompt:
+            preview = str(data)[:500]
+            raise ValueError(f"模型返回为空，响应预览：{preview}")
+
         print(f"✅ Prompt生成成功，长度：{len(generated_prompt)} 字符")
         return generated_prompt
     except Exception as e:
@@ -464,6 +484,11 @@ def main():
     # 生成高质量Prompt
     final_prompt = generate_ultra_high_quality_prompt(today_pet)
     
+    # 防止空内容或错误信息被继续推送/写入
+    if (not final_prompt.strip()) or final_prompt.startswith("❌ Minimax调用失败："):
+        print("❌ 本次生成结果无效，已中止后续保存与推送")
+        return
+
     # 保存生成记录
     summary = final_prompt[:200] if len(final_prompt) > 200 else final_prompt
     manager.save_generation_record(today_pet, final_prompt, summary)
