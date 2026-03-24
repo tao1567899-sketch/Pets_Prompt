@@ -69,10 +69,10 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          # 添加所有生成的文件
-          git add sent_pets_history.json
-          git add pet_database.json
-          git add prompt_*.txt
+          # 只添加存在的文件，避免路径不存在时报错
+          [ -f sent_pets_history.json ] && git add sent_pets_history.json || true
+          [ -f pet_database.json ] && git add pet_database.json || true
+          ls prompt_*.txt >/dev/null 2>&1 && git add prompt_*.txt || true
           
           # 检查是否有变更
           if git diff --staged --quiet; then
