@@ -17,8 +17,8 @@ SPECIFIC_PET = os.environ.get("SPECIFIC_PET", "")  # 指定生成的宠物品种
 SKIP_FEISHU = os.environ.get("SKIP_FEISHU", "false").lower() == "true"  # 跳过飞书推送
 FORCE_REGENERATE = os.environ.get("FORCE_REGENERATE", "false").lower() == "true"  # 强制重新生成
 
-MINIMAX_API_URL = "https://api.minimax.chat/v1/text/chatcompletion_pro"
-MINIMAX_MODEL = "minimax-2.7"
+MINIMAX_API_URL = "https://api.minimaxi.com/v1/text/chatcompletion_v2"
+MINIMAX_MODEL = "MiniMax-M2.7"
 FEISHU_CHUNK_SIZE = 2500
 
 # 数据文件
@@ -325,8 +325,8 @@ def generate_ultra_high_quality_prompt(pet_name: str) -> str:
     payload = {
         "model": MINIMAX_MODEL,
         "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "system", "name": "Prompt Architect", "content": system_prompt},
+            {"role": "user", "name": "用户", "content": user_prompt}
         ],
         "temperature": 0.85,  # 稍微降低随机性，提高质量稳定性
         "top_p": 0.92,
@@ -343,6 +343,13 @@ def generate_ultra_high_quality_prompt(pet_name: str) -> str:
         )
         response.raise_for_status()
         data = response.json()
+
+        base_resp = data.get("base_resp") if isinstance(data, dict) else None
+        if isinstance(base_resp, dict) and base_resp.get("status_code") not in (None, 0):
+            raise ValueError(
+                f"MiniMax业务错误：status_code={base_resp.get('status_code')}, "
+                f"status_msg={base_resp.get('status_msg', '')}"
+            )
 
         # 兼容不同返回格式，优先提取非空文本
         generated_prompt = ""
