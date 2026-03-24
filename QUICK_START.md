@@ -21,13 +21,21 @@ pet_auto_post_v2.py
 - **Name**: `FEISHU_WEBHOOK`  
   **Value**: 你的飞书Webhook地址
 
-### 步骤3：启用GitHub Actions
+### 步骤3：启用并测试 GitHub Actions
 - 进入仓库的 Actions 标签
 - 如果是首次使用，点击 "I understand my workflows, go ahead and enable them"
 - 点击左侧的 "宠物自媒体每日创作"
-- 点击右侧的 "Run workflow" 进行首次测试
+- 点击右侧的 **"Run workflow"** 按钮（蓝色按钮）
+- 在弹出菜单中：
+  - **指定品种**：留空（自动选择）或输入如`柯基`
+  - **跳过飞书推送**：✅ 勾选（首次测试建议勾选）
+  - **强制重新生成**：❌ 不勾选
+- 点击绿色 **"Run workflow"** 按钮
+- 等待1-3分钟，查看运行结果
 
 ✅ **完成！系统将每天北京时间10点自动运行**
+
+💡 **手动触发详细说明**：查看 `MANUAL_TRIGGER_GUIDE.md`
 
 ---
 
