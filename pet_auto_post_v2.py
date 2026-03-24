@@ -3,6 +3,7 @@ import json
 import requests
 import random
 import hashlib
+import sys
 from datetime import datetime, timedelta
 from typing import List, Dict
 
@@ -18,6 +19,7 @@ FORCE_REGENERATE = os.environ.get("FORCE_REGENERATE", "false").lower() == "true"
 
 MINIMAX_API_URL = "https://api.minimax.chat/v1/text/chatcompletion_pro"
 MINIMAX_MODEL = "minimax-2.7"
+FEISHU_CHUNK_SIZE = 2500
 
 # 数据文件
 HISTORY_FILE = "sent_pets_history.json"
@@ -371,11 +373,44 @@ def generate_ultra_high_quality_prompt(pet_name: str) -> str:
 
 
 # ===================== 发送到飞书 =====================
+def split_text(text: str, chunk_size: int) -> List[str]:
+    """按固定大小切分文本，避免单条消息过长被平台拒绝"""
+    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)] or [""]
+
+
+def send_feishu_text(text: str):
+    """发送单条飞书文本消息，并严格校验响应结果"""
+    msg_data = {
+        "msg_type": "text",
+        "content": {"text": text}
+    }
+
+    response = requests.post(FEISHU_WEBHOOK, json=msg_data, timeout=20)
+    body_preview = response.text[:500]
+
+    if response.status_code != 200:
+        raise RuntimeError(f"飞书HTTP异常：status={response.status_code}, body={body_preview}")
+
+    try:
+        data = response.json()
+    except ValueError:
+        print(f"ℹ️ 飞书返回非JSON内容：{body_preview}")
+        return
+
+    if isinstance(data, dict):
+        code = data.get("code")
+        status_code = data.get("StatusCode")
+        if code not in (None, 0) or status_code not in (None, 0):
+            raise RuntimeError(f"飞书业务返回异常：{json.dumps(data, ensure_ascii=False)}")
+
+    print(f"✅ 飞书发送成功：{body_preview}")
+
+
 def send_to_feishu(pet: str, final_prompt: str, stats: Dict):
     """发送到飞书，包含统计信息"""
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    message = f"""
+
+    header_message = f"""
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🎉 宠物自媒体每日创作Prompt已生成
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -397,9 +432,9 @@ def send_to_feishu(pet: str, final_prompt: str, stats: Dict):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⬇️⬇️⬇️ 以下是完整Prompt，直接复制使用 ⬇️⬇️⬇️
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
 
-{final_prompt}
-
+    footer_message = """
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⬆️⬆️⬆️ Prompt结束 ⬆️⬆️⬆️
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -413,19 +448,14 @@ def send_to_feishu(pet: str, final_prompt: str, stats: Dict):
 🔥 下次推送时间：明天同一时间
 """
 
-    msg_data = {
-        "msg_type": "text",
-        "content": {"text": message}
-    }
+    send_feishu_text(header_message)
 
-    try:
-        response = requests.post(FEISHU_WEBHOOK, json=msg_data, timeout=20)
-        if response.status_code == 200:
-            print("✅ 已成功推送至飞书")
-        else:
-            print(f"⚠️ 飞书推送异常，状态码：{response.status_code}")
-    except Exception as e:
-        print(f"❌ 飞书推送失败：{e}")
+    prompt_chunks = split_text(final_prompt, FEISHU_CHUNK_SIZE)
+    for index, chunk in enumerate(prompt_chunks, start=1):
+        chunk_message = f"[Prompt {index}/{len(prompt_chunks)}]\n{chunk}"
+        send_feishu_text(chunk_message)
+
+    send_feishu_text(footer_message)
 
 
 # ===================== 主程序 =====================
@@ -438,10 +468,13 @@ def main():
     # 检查必要的环境变量
     if not MINIMAX_API_KEY:
         print("❌ 错误：未设置 MINIMAX_API_KEY 环境变量")
-        return
+        return 1
     
-    if not FEISHU_WEBHOOK:
-        print("⚠️ 警告：未设置 FEISHU_WEBHOOK，将无法推送消息")
+    if not FEISHU_WEBHOOK and not SKIP_FEISHU:
+        print("❌ 错误：未设置 FEISHU_WEBHOOK，且当前未启用 skip_feishu")
+        return 1
+
+    print(f"🔐 FEISHU_WEBHOOK 已配置：{'是' if bool(FEISHU_WEBHOOK) else '否'}")
     
     # 显示运行模式
     if SPECIFIC_PET:
@@ -479,7 +512,7 @@ def main():
             print("⏩ 继续生成...")
         else:
             print("⏭️ 跳过本次生成")
-            return
+            return 0
     
     # 生成高质量Prompt
     final_prompt = generate_ultra_high_quality_prompt(today_pet)
@@ -487,7 +520,7 @@ def main():
     # 防止空内容或错误信息被继续推送/写入
     if (not final_prompt.strip()) or final_prompt.startswith("❌ Minimax调用失败："):
         print("❌ 本次生成结果无效，已中止后续保存与推送")
-        return
+        return 1
 
     # 保存生成记录
     summary = final_prompt[:200] if len(final_prompt) > 200 else final_prompt
@@ -518,7 +551,8 @@ def main():
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(final_prompt)
     print(f"💾 Prompt已保存至：{output_file}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
