@@ -1,0 +1,110 @@
+【文案Prompt】
+
+你是一位拥有10年经验的小红书/知乎/公众号三平台顶级宠物自媒体运营总监，专攻布偶猫垂直领域。现在请为布偶猫创作一篇面向新手铲屎官和准备养宠人群的高转化种草内容。
+
+内容需覆盖以下8大模块，并严格遵循指定的字数、风格和平台特性：
+
+**一、创作背景**
+说明本文的创作目的、目标人群痛点、解决什么核心问题，以及为什么选择布偶猫作为主题。
+
+**二、小红书爆款标题（5选1）**
+要求：使用emoji、数字、悬念、情绪词等爆款元素，控制在20字以内，覆盖不同风格类型（震惊体/情感共鸣型/干货型/对比反差型/直接痛点型）。
+
+**三、开头钩子（3选1）**
+要求：3秒内抓住注意力，避免平淡开头，覆盖不同策略（故事型/数据型/冲突型）。
+
+**四、正文核心内容（1500-2000字，分5大模块）**
+
+模块1：品种真相与避坑指南
+- 布偶猫的起源和真实性格描述（避免美化过度）
+- 市场上常见的3-5个骗局或误区（如后院猫、星期猫、货不对板等）
+- 如何辨别正规猫舍与后院繁殖
+- 购买渠道推荐与价格区间（真实市场价，避免误导）
+
+模块2：性格特点与真实体验
+- 布偶猫的真实性格画像（与传说中"狗化"说法的对比）
+- 3个真实铲屎官的第一人称养宠故事（包含具体场景、问题、解决方式）
+- 布偶猫适合什么样的人群（生活方式、居住环境、精力投入等维度）
+- 不适合养布偶猫的4类人群（诚实告知，避免盲目种草）
+
+模块3：科学饲养攻略
+- 饮食指南：月均食量、主粮推荐、零食禁忌（具体品牌和价格区间）
+- 日常护理：毛发打理频率、洗澡建议、指甲修剪、环境清洁
+- 健康关注点：布偶猫常见的遗传疾病（多囊肾、心肌肥大等）及预防措施
+- 疫苗与驱虫：时间表、费用、注意事项
+- 必备清单：新手入门必备物品清单（附价格区间，分为刚需和非刚需）
+
+模块4：养宠成本大公开
+- 一次性成本：购猫/领养费用、基础装备采购
+- 月均持续成本：猫粮、猫砂、医疗保健、零食玩具
+- 年均大项支出：疫苗加强、年度体检、意外医疗储备
+- 真实案例：普通家庭养布偶猫一年真实花费（分低配版/标准版/豪华版三个档次）
+- 隐藏成本提示：搬家不便、寄养费用、出行限制等
+
+模块5：高频问答环节（10个Q&A）
+涵盖新手最关心的核心问题，每个问题必须给出实用、可操作的答案：
+Q1: 布偶猫掉毛严重吗？家里有鼻炎患者能养吗？
+Q2: 布偶猫真的像传说中那么亲人吗？会不会养了很冷漠？
+Q3: 布偶猫玻璃胃是真的吗？饮食上要注意什么？
+Q4: 布偶猫多少钱一只？价格差异为什么这么大？
+Q5: 布偶猫需要经常洗澡吗？多久洗一次？
+Q6: 布偶猫会拆家吗？需要很大的活动空间吗？
+Q7: 布偶猫能和其他宠物和平相处吗？比如原住民狗狗？
+Q8: 养布偶猫需要准备多少预算才够？
+Q9: 布偶猫的寿命有多长？老了会有什么健康问题？
+Q10: 领养代替购买可行吗？哪里可以领养到布偶猫？
+
+**五、互动引导话术**
+要求：设计3套不同风格的评论区互动话术，引导用户留言、点赞、收藏、关注，涵盖常见评论类型的回复模板。
+
+**六、小红书标签（15个）**
+要求：包含布偶猫核心词、长尾词、场景词、情绪词、平台热词，覆盖精准流量和泛流量。
+
+**七、知乎专属优化**
+- 知乎风格适配：去掉过多emoji，保持专业性和深度
+- 增加专业背书：引用相关研究、数据、权威养猫资料
+- 优化回答结构：适合知乎的长文阅读习惯
+- 添加延伸阅读引导
+
+**八、公众号排版建议**
+- 标题优化建议
+- 正文段落结构建议
+- 重点信息标注方式
+- 配图位置建议
+- 文末互动组件设计
+
+**风格要求：**
+- 语言生活化、有网感，像朋友聊天一样真诚
+- 避免广告腔、避免假大空
+- 用真实案例和数据说话
+- 必须包含具体场景、具体问题、具体建议
+- 适当加入"过来人"的情感温度
+- 诚实告知缺点和注意事项，不做盲目吹捧
+
+**输出格式：**
+请按上述8大模块依次输出完整文案内容，正文核心内容1500-2000字，全文结构清晰，可直接用于发布。
+
+【图片生成Prompt】
+
+请为【布偶猫】输出 3 组可直接用于图片模型的写实风格图片生成 Prompt。
+
+通用要求：
+- 所有图片都必须是写实摄影风格
+- 所有画面中禁止出现任何文字、字母、logo、水印、贴纸、海报字
+- 画面干净、自然、温暖、真实，有宠物摄影质感
+- 每组都必须包含：图X用途、中文提示词、English prompt、Negative prompt
+
+图1用途：封面图
+中文提示词：超高清写实照片，可爱的布偶猫幼宠特写，毛发纤毫毕现，温柔眼神看向镜头，柔和自然光，浅景深背景虚化，专业摄影质感，暖色调，治愈氛围，16:9横版构图，画面干净，无任何文字、字母、logo、水印、贴纸
+English prompt: ultra realistic pet photography, cute young 布偶猫, close-up portrait, detailed fur, gentle eye contact, soft natural light, shallow depth of field, warm tone, healing atmosphere, clean background, 16:9 composition, no text, no letters, no logo, no watermark, no sticker
+Negative prompt: text, letters, logo, watermark, sticker, blurry, low resolution, distorted anatomy, duplicate limbs, messy background, oversaturated
+
+图2用途：正文配图-日常互动
+中文提示词：布偶猫幼宠和主人在客厅玩耍，温馨家庭氛围，抓拍感，写实摄影风格，自然光线，构图干净，生活化场景，画面中无任何文字元素
+English prompt: realistic lifestyle pet photography, young 布偶猫 playing with owner in living room, warm family atmosphere, candid shot, natural lighting, clean composition, cozy home scene, no text, no letters, no logo, no watermark
+Negative prompt: text, letters, logo, watermark, poster text, blurry, low resolution, distorted hands, distorted paws, duplicate limbs, cluttered scene
+
+图3用途：正文配图-护理训练
+中文提示词：布偶猫幼宠在接受喂食、基础训练或健康检查，生活化真实场景，写实摄影风格，光线柔和，主体清晰，画面干净，无任何文字、字母、logo、水印
+English prompt: realistic pet care photography, young 布偶猫 during feeding or basic training or health check, natural lifestyle scene, soft lighting, sharp subject, clean frame, no text, no letters, no logo, no watermark
+Negative prompt: text, letters, logo, watermark, sticker, blurry, low resolution, distorted anatomy, duplicate limbs, messy background, artificial props overload
